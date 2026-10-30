@@ -1,0 +1,17 @@
+{
+  "residual_mean": -4.2858133268069536e-16,
+  "residual_skew": -1.224327034146634,
+  "residual_kurtosis": 8.751188200240113,
+  "shapiro_w": 0.895080332966577,
+  "shapiro_p": 1.8096729222880284e-28,
+  "qid_variance": 1.2968310585309268,
+  "total_variance": 5.988638488848191,
+  "icc_estimate": 0.41314980052866135,
+  "min_qid_count": 7,
+  "max_qid_count": 7,
+  "median_qid_count": 7.0,
+  "n_outliers_3std": 15,
+  "levene_w": 0.38023220220032483,
+  "levene_p": 0.5375905624542617,
+  "n_total": 1260
+}

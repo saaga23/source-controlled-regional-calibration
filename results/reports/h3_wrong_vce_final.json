@@ -1,0 +1,47 @@
+{
+  "claim": "H3: No statistically significant Africa-overconfidence on wrong answers",
+  "experiment_id": "AFRIKNOW_V18",
+  "source_file": "data/raw/03_openrouter_outputs_v18_correct.csv",
+  "raw_hash": "1915a77c02ff1f08a87f8b2950f2e2c5e3041a353f7e26f456dd700543a6807d",
+  "results": {
+    "wrong_vce_africa": 0.761,
+    "wrong_vce_europe": 0.832,
+    "wrong_vce_africa_exact": 0.7612658227848101,
+    "wrong_vce_europe_exact": 0.8318681318681319,
+    "n_wrong_africa": 79,
+    "n_wrong_europe": 91,
+    "cohens_d": -0.317,
+    "cohens_d_exact": -0.3173708810994586,
+    "ci_95": [-0.621, -0.014],
+    "ci_95_exact": [-0.6206550688478826, -0.01408669335103463],
+    "mwu_p": 0.234,
+    "mwu_p_exact": 0.233657,
+    "qid_perm_p": 0.7263273672632736,
+    "qid_perm_chi2": 0.677032296770323,
+    "n_perm": 10000,
+    "permutation_seed": 20260622
+  },
+  "mixed_effects_confidence": {
+    "beta_europe": 0.152,
+    "p": 0.421,
+    "intercept": 2.342,
+    "qid_variance": 1.297
+  },
+  "power": {
+    "mde_80pct": 0.433,
+    "power_d_30": 0.492,
+    "interpretation": "Underpowered for equivalence test; cannot claim equivalence"
+  },
+  "null_framing": "d = -0.317, 95% CI [-0.621, -0.014] includes zero; underpowered for equivalence (MDE = 0.433 at 80% power)",
+  "robustness": {
+    "leave_one_model_out": "all 7 drops STABLE, all p > 0.11",
+    "leave_one_model_out_file": "evidence/final/leave_one_model_out_final.csv"
+  },
+  "verification": {
+    "check_file": "evidence/consistency_check.json",
+    "checks_total": 71,
+    "checks_passed": 71,
+    "status": "PASS"
+  },
+  "last_verification_date": "2026-08-20"
+}

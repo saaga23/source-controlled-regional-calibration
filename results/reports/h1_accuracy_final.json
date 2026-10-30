@@ -1,0 +1,40 @@
+{
+  "claim": "H1: No statistically significant accuracy gap between Africa and Europe",
+  "experiment_id": "AFRIKNOW_V18",
+  "source_file": "data/raw/03_openrouter_outputs_v18_correct.csv",
+  "raw_hash": "1915a77c02ff1f08a87f8b2950f2e2c5e3041a353f7e26f456dd700543a6807d",
+  "row_count": 2520,
+  "unique_qids": 180,
+  "split": {"africa": 90, "europe": 90},
+  "results": {
+    "accuracy_africa": 0.875,
+    "accuracy_europe": 0.856,
+    "accuracy_africa_exact": 0.8746031746031746,
+    "accuracy_europe_exact": 0.8555555555555555,
+    "n_correct_africa": 551,
+    "n_correct_europe": 539,
+    "n_total_per_region": 630,
+    "chi2": 0.8227738801942795,
+    "p_chi2": 0.36437,
+    "p_perm_qid": 0.677032296770323,
+    "n_perm": 10000,
+    "permutation_seed": 20260622,
+    "permutation_unit": "qid"
+  },
+  "mixed_effects_accuracy": {
+    "beta_europe": -0.165,
+    "p": 0.646,
+    "intercept": 2.346
+  },
+  "robustness": {
+    "leave_one_model_out": "all 7 drops STABLE, all p > 0.28",
+    "leave_one_model_out_file": "evidence/final/leave_one_model_out_final.csv"
+  },
+  "verification": {
+    "check_file": "evidence/consistency_check.json",
+    "checks_total": 71,
+    "checks_passed": 71,
+    "status": "PASS"
+  },
+  "last_verification_date": "2026-08-20"
+}

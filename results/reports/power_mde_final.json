@@ -1,0 +1,7 @@
+{
+    "mde_80pct":  0.433,
+    "cohens_d_30_power":  0.492,
+    "cohens_d_50_power":  0.899,
+    "cohens_d_100_power":  0.99,
+    "source":  "POWER_ANALYSIS.md"
+}

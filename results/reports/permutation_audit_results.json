@@ -1,0 +1,14 @@
+{
+  "observed_chi2": 0.8227738801942795,
+  "observed_u": 3217.5,
+  "corrected_p_perm_chi2": 0.677032296770323,
+  "corrected_p_perm_u": 0.7263273672632736,
+  "wrong_p_perm_chi2": 0.3604639536046395,
+  "wrong_p_perm_u": 0.8804119588041196,
+  "n_perm": 10000,
+  "seed": 20260622,
+  "permutation_unit": "qid",
+  "n_qids": 180,
+  "n_africa_qids": 90,
+  "n_europe_qids": 90
+}

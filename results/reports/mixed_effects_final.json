@@ -1,0 +1,15 @@
+{
+    "confidence_lmm":  {
+                           "qid_variance":  1.297,
+                           "p":  0.421,
+                           "source":  "confidence_lmm_verified.csv",
+                           "intercept":  2.342,
+                           "beta_europe":  0.152
+                       },
+    "accuracy_glm":  {
+                         "p":  0.646,
+                         "source":  "consistency_check.json + confidence_lmm_verified.csv",
+                         "intercept":  2.346,
+                         "beta_europe":  -0.165
+                     }
+}

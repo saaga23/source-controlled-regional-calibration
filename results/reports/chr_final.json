@@ -1,0 +1,26 @@
+{
+  "claim": "H2: High-confidence error rate (CHR) lower for Africa than Europe (descriptive)",
+  "experiment_id": "AFRIKNOW_V18",
+  "source_file": "data/raw/03_openrouter_outputs_v18_correct.csv",
+  "raw_hash": "1915a77c02ff1f08a87f8b2950f2e2c5e3041a353f7e26f456dd700543a6807d",
+  "results": {
+    "chr_africa": 0.105,
+    "chr_europe": 0.136,
+    "chr_africa_exact": 0.10482529411764706,
+    "chr_europe_exact": 0.136289,
+    "ratio": 0.77,
+    "ratio_exact": 0.772059
+  },
+  "statistical_test": "Descriptive only (no inferential test performed)",
+  "robustness": {
+    "leave_one_model_out": "CHR ratio 0.733-0.801 across all 7 model drops",
+    "leave_one_model_out_file": "evidence/final/leave_one_model_out_final.csv"
+  },
+  "verification": {
+    "check_file": "evidence/consistency_check.json",
+    "checks_total": 71,
+    "checks_passed": 71,
+    "status": "PASS"
+  },
+  "last_verification_date": "2026-08-20"
+}
