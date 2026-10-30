@@ -1,0 +1,30 @@
+bibkey,area,title_first_author,year,venue,peer_reviewed,verification_status,url_or_doi,relationship_to_this_project
+kadavath2022language,A. Confidence & calibration,Kadavath et al.,2022,arXiv preprint,preprint,VERIFIED,https://arxiv.org/abs/2207.05221,Basis for VCE elicitation and self-evaluation
+lin2022teaching,A. Confidence & calibration,Lin et al.,2022,TMLR,yes,PENDING,https://openreview.net/forum?id=8Tq1oPV7O5,Verbalized uncertainty in words; basis for 0-100 VCE prompt
+mielke2022reducing,A. Confidence & calibration,Mielke et al.,2022,TACL,yes,PENDING,,Trained verbal uncertainty in dialogue
+tian2023just,A. Confidence & calibration,Tian et al.,2023,EMNLP 2023,yes,VERIFIED,https://aclanthology.org/2023.emnlp-main.330/,Just-ask verbalized confidence in RLHF models
+si2022reexamining,A. Confidence & calibration,Si et al.,2022,EMNLP Findings 2022,yes,VERIFIED,https://aclanthology.org/2022.findings-emnlp.206/,ECE gameability; motivates multi-metric reporting
+kuhn2023semantic,A. Confidence & calibration,Kuhn et al.,2023,ICLR 2023,yes,PENDING,,Semantic uncertainty; underpins consistency signals
+wang2023selfconsistency,A. Confidence & calibration,Wang et al.,2023,ICLR 2023,yes,PENDING,,Self-consistency; basis of MSP signal
+manakul2023selfcheckgpt,A. Confidence & calibration,Manakul et al.,2023,EMNLP 2023,yes,VERIFIED,https://aclanthology.org/2023.emnlp-main.488/,Sampling-consistency as black-box signal
+xiong2024can,A. Confidence & calibration,Xiong et al.,2024,ICLR 2024,yes,PENDING,,Verbalized confidence often overconfident
+geng2024survey,A. Confidence & calibration,Geng et al.,2024,NAACL 2024,yes,PENDING,,Taxonomy of confidence estimation methods and metrics
+huang2024rank,A. Confidence & calibration,Huang et al.,2024,EMNLP 2024,yes,VERIFIED,https://aclanthology.org/2024.emnlp-main.18/,Rank-calibration diagnostic
+zhang2024calibrating,A. Confidence & calibration,Zhang et al.,2024,EMNLP 2024,yes,VERIFIED,https://aclanthology.org/2024.emnlp-main.318/,Fidelity decomposition; distractor effects on confidence
+wang2024self,A. Confidence & calibration,Wang et al.,2024,EMNLP Findings 2024,yes,VERIFIED,https://aclanthology.org/2024.findings-emnlp.354/,Self-consistency improves calibration
+steyvers2024calibration,A. Confidence & calibration,Steyvers et al.,2024,arXiv preprint,preprint,VERIFIED,https://arxiv.org/abs/2401.13835,Model-human calibration gap
+chhikara2025mind,A. Confidence & calibration,Chhikara,2025,TMLR,yes,PENDING,,Distractor-augmented prompts change calibration
+xia2026calibration,A. Confidence & calibration,Xia et al.,2026,arXiv preprint,preprint,PENDING,,Calibration under language variation
+zhou2025beyond,A. Confidence & calibration,Zhou et al.,2025,arXiv preprint,preprint,PENDING,,Multilingual calibration worse than English
+guo2017calibration,D. Statistical methodology,Guo et al.,2017,ICML 2017,yes,VERIFIED,https://proceedings.mlr.press/v70/guo17a.html,ECE definition; reliability diagrams; temperature scaling
+niculescu2005predicting,D. Statistical methodology,Niculescu-Mizil & Caruana,2005,ICML 2005,yes,PENDING,,Why predicted probabilities are not calibrated
+manvi2024geographically,B. Regional evaluation,Manvi et al.,2024,ICML 2024,yes,VERIFIED,https://proceedings.mlr.press/v235/manvi24a.html,Geographic bias against lower-income regions
+mirza2024global,B. Regional evaluation,Mirza et al.,2024,arXiv preprint,preprint,VERIFIED,https://arxiv.org/abs/2401.17839,Global-North factuality advantage
+moayeri2024worldbench,B. Regional evaluation,Moayeri et al.,2024,FAccT 2024,yes,PENDING,,Country-level factual recall gaps
+coelho2025inequality,B. Regional evaluation,Coelho et al.,2025,arXiv preprint,preprint,VERIFIED-leaning,https://arxiv.org/abs/2503.22877,Retrieval does not close geographic gap
+decoupes2025geographical,B. Regional evaluation,Decoupes et al.,2025,Machine Learning (Springer),yes,PENDING,10.1007/s10994-025-06845-7,Western overrepresentation distortion measures
+rystrom2025multilingual,B. Regional evaluation,Rystrøm et al.,2025,MMLP Workshop,no,PENDING,,Multilingual is not multicultural
+adelani2025irokobench,B. Regional evaluation (African NLP),Adelani et al.,2025,NAACL 2025,yes,VERIFIED,https://arxiv.org/abs/2406.03368,AfriMMLU; source-confounded prior comparisons
+ojo2025afrobench,B. Regional evaluation (African NLP),Ojo et al.,2025,ACL Findings 2025,yes,PENDING,,AfroBench: 64 languages 15 tasks
+singh2025global,B. Regional evaluation (African NLP) / C. Benchmark validity,Singh et al.,2025,ACL 2025,yes,VERIFIED,https://arxiv.org/abs/2412.03304,Source benchmark; region tags; ranking distortion by CS subsets
+guan2025saged,E. Fairness implications,Guan et al.,2025,COLING 2025,yes,PENDING,,Bias-benchmarking with fairness calibration
