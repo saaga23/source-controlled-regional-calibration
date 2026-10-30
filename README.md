@@ -257,7 +257,7 @@ Expected outputs: evidence CSV/JSON in `results/reports/` matching the frozen co
 
 ```bash
 copy .env.example .env      # then put your key in OPENROUTER_API_KEY (never commit .env)
-python scripts/primary/03_openrunner_runner.py   # see script header for args
+python scripts/primary/03_openrouter_runner.py   # see script header for args
 ```
 
 Record exact model identifiers from `data/metadata/03_openrouter_manifest_v18.json`. If a route is no longer available, document the unavailability — do not silently substitute a different model.
