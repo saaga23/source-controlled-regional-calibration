@@ -1,0 +1,558 @@
+%%%% AfriKnow -- source-aware calibration audit manuscript
+\typeout{AfriKnow / source-aware calibration audit}
+
+\documentclass[11pt]{article}
+
+% ARR / *ACL submission. Use [review] for anonymous review (line + page numbers);
+% switch to [final] for the camera-ready.
+\usepackage[review]{acl}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\graphicspath{{v18_analysis_figures/}{figures/}}
+
+\title{AfriKnow: Do LLMs Know When They Are Wrong About Africa?}
+
+\author{
+Anonymous \\
+\texttt{anonymous@example.com} \\
+\textit{Anonymous Institution} \\
+Anonymous, Country
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Language models now serve users around the world, yet whether they know when they are wrong is rarely checked across regions when the test questions come from the same source. This paper audits seven models on 180 Global-MMLU multiple-choice questions, balanced as 90 about Africa and 90 about Europe, using each model's own stated confidence (a 0--100 guess of how likely its answer is correct) as the main signal. Where earlier mixed-source comparisons reported Africa-specific overconfidence, the source-controlled data tell a different story: there is no statistically significant accuracy gap (Africa 87.5\% vs. Europe 85.6\%, $\chi^2 = 0.823$, $p = .364$) and no statistically significant evidence that African items draw higher confidence after a wrong answer (Cohen's $d = -0.317$, 95\% parametric CI $[-0.621, -0.014]$; two-sided Mann-Whitney $p = .234$; qid-level permutation $p = .726$; no per-model test survives Holm correction). At high confidence the rate of confident errors is actually lower for Africa than for Europe (10.5\% vs. 13.6\%, ratio 0.77). Two mixed-effects models agree: a cluster-robust logistic regression on accuracy gives $\beta_\text{Europe} = -0.17$ ($p = .646$), and a logit-normal linear mixed model on VCE gives $\beta_\text{Europe} = +0.15$ ($p = .421$). Dropping 12 items flagged as content-label mismatches does not change any conclusion. Apparent regional overconfidence, then, can be an artifact of mixing benchmark sources; audits that hold the source constant give a clearer picture of model calibration.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+
+Large language models now sit inside search engines, coding assistants, and classroom tools. Their training data, however, still skew toward English and Western sources, and several studies find weaker factual accuracy for the Global South \cite{mirza2024global,moayeri2024worldbench,decoupes2025geographical}. Inaccuracy is only part of the risk. A model that gives a wrong answer with high confidence can mislead users more than one that admits its uncertainty \cite{steyvers2024calibration,geng2024survey}.
+
+Calibration captures how well a model's stated confidence tracks its actual accuracy \cite{guo2017calibration}: a model that reports 80\% confidence should be right about 80\% of the time. Overconfidence, where confidence runs ahead of accuracy, has turned up across many LLM families \cite{chhikara2025mind,xia2026calibration}. What is still open is whether that overconfidence falls unevenly across regions, and whether earlier Africa-versus-Europe comparisons were really measuring region at all. In most of those studies, the African questions came from AfriMMLU while the European ones came from Global-MMLU or Wikidata \cite{singh2025global,adelani2025irokobench}, so region is tangled together with source-specific difficulty, translation quality, and the design of the distractors (the wrong answer choices).
+
+A source-controlled slice of Global-MMLU cuts through that tangle: the Africa-tagged and Europe-tagged items come from the same benchmark \cite{singh2025global}. Seven open-weight and proprietary models are run through 180 medium-difficulty items (90 Global-MMLU Africa-tagged items, 90 Global-MMLU Europe-tagged items) using a single black-box signal, verbalized confidence \cite{kadavath2022language,tian2023just}. Alongside accuracy and Calibration Hit Rate, wrong-answer confidence, Expected Calibration Error (ECE; \citealp{guo2017calibration}), and Brier score \cite{niculescu2005predicting} are reported, plus mixed-effects models that treat model and item as random effects.
+
+The confound matters most precisely for calibration. When African items happen to be harder, less cleanly translated, or furnished with weaker distractors, a model looks ``overconfident on Africa'' even though the item source is a contributing factor. By holding the source fixed, the regional question is separated from those confounds and a simple question follows: does an Africa-overconfidence effect survive once the benchmark is the same on both sides?
+
+It does not. The data show (i) no significant accuracy gap between Africa and Europe; (ii) no evidence that models are more confident on wrong African answers, in fact the point estimate points the other way; (iii) high-confidence African predictions are slightly less likely to be wrong than European ones; and (iv) calibration differs a good deal across models and shows some region-specific tilt, but nothing resembling a uniform Africa-overconfidence pattern. The upshot is that apparent regional overconfidence can be a by-product of source mixing, and audits that control for source belong in the standard fairness toolkit.
+
+The remainder of the paper is organized as follows. Section~\ref{sec:related} reviews the relevant literature. Section~\ref{sec:methods} describes the dataset, models, confidence signals, and statistical methods. Section~\ref{sec:results} presents the accuracy, calibration, and mixed-effects results. Section~\ref{sec:discussion} interprets the findings and their implications. Section~\ref{sec:conclusion} concludes, and Section~\ref{sec:limitations} states the limitations.
+
+\section{Related Work}
+\label{sec:related}
+
+This work sits where three threads meet: how to measure LLM confidence, how models behave across geographic regions, and how to evaluate African and culturally grounded content. The most relevant 2022--2026 studies, and the gap each one leaves for this paper, are collected in Table~\ref{tab:related} (Appendix~\ref{app:related}).
+
+\textbf{Calibration and confidence in LLMs.} Surveys group confidence methods into verbalized, consistency-based, and training-based families \cite{geng2024survey}. Si et al. show that aggregate ECE can be gamed by flat, uninformative confidence, which pushes toward metrics that actually separate right from wrong answers \cite{si2022reexamining}. Verbalized confidence can be drawn out of RLHF-tuned models \cite{lin2022teaching,mielke2022reducing}, yet it tends to stay overconfident \cite{tian2023just,xiong2024can}. Sampling several answers and checking their agreement helps, in reasoning as well as question answering \cite{wang2023selfconsistency,kuhn2023semantic,manakul2023selfcheckgpt,wang2024self}. Rank calibration and fidelity-based breakdowns add finer diagnostics \cite{huang2024rank,zhang2024calibrating}, and Xia et al. argue that calibration should be probed under language variation \cite{xia2026calibration}. Newer work finds that non-English settings calibrate worse overall, though middle layers sometimes give steadier signals than the final layer \cite{zhou2025beyond}. This audit uses verbalized confidence (VCE) as the primary signal and reports Brier score and ECE rather than leaning on one headline number.
+
+\textbf{Geographic and cultural bias.} A cluster of 2024--2025 papers maps where models stumble geographically. Manvi et al. find bias against lower-income regions, Africa among them \cite{manvi2024geographically}; Mirza et al. track factuality across regions and model versions and report a Global-North edge \cite{mirza2024global}; Moayeri et al. build country-level World-Bank questions and see higher error rates in Sub-Saharan Africa \cite{moayeri2024worldbench}. Coelho et al. show retrieval does not close the geographic fact-checking gap \cite{coelho2025inequality}, and Decoupes et al. propose distortion measures that expose Western overrepresentation \cite{decoupes2025geographical}. Multilingual skill, it turns out, is no guarantee of cultural alignment \cite{rystrom2025multilingual}, and counterfactual branching helps control for prompt and metric bias \cite{guan2025saged}. All of these target accuracy, not calibration. The next question is whether models know when their geographically uneven knowledge is shaky.
+
+\textbf{African and culturally aware benchmarks.} Adelani et al. release IrokoBench, with AfriMMLU as a hand-built African-language benchmark \cite{adelani2025irokobench}. Singh et al. follow with Global-MMLU, a culturally aware translation of MMLU into 42 languages that tags culturally sensitive items as Africa or Europe \cite{singh2025global}. Ojo et al. add AfroBench, 64 languages across 15 tasks, confirming wide gaps for African languages \cite{ojo2025afrobench}. The catch in earlier Africa-versus-Europe work is that the African side came from AfriMMLU while the European side came from Global-MMLU or Wikidata, so region and source move together. Using Global-MMLU for both sides pulls those two apart.
+
+Table~\ref{tab:related_summary} distils the most relevant 2022--2026 work into three strands, calibration, geographic bias, and African-NLP evaluation, and the specific gap each one leaves for this study. The full list is in Appendix~\ref{app:related}.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+\toprule
+\textbf{Work} & \textbf{Contribution} & \textbf{Gap filled here} \\
+\midrule
+Kadavath et al. (2022); Tian et al. (2023) & Verbalized confidence via prompting & Basis for the VCE signal \\
+Si et al. (2022); Huang et al. (2024) & ECE is gameable; rank-calibration & Region-stratified ECE + Brier \\
+Manvi et al. (2024); Mirza et al. (2024) & Geographic factual bias & Motivates region-stratified calibration \\
+Moayeri et al. (2024); Decoupes et al. (2025) & Sub-Saharan accuracy gaps & Source-controlled check \\
+Adelani et al. (2025); Ojo et al. (2025) & African benchmarks (AfriMMLU, AfroBench) & Prior work confounds region with source \\
+Singh et al. (2025) & Global-MMLU, Africa/Europe tags & Source of the matched split \\
+Xia et al. (2026) & Calibration under language variation & Drives use of richer confidence diagnostics such as VCE \\
+\bottomrule
+\end{tabularx}
+\caption{Selected 2022--2026 literature by strand and the gap this study fills. Full entries with venues and key claims appear in Table~\ref{tab:related} (Appendix~\ref{app:related}).}
+\label{tab:related_summary}
+\end{table}
+
+% The full 2022--2026 literature review appears as Table~\ref{tab:related} in Appendix~\ref{app:related}.
+
+\section{Dataset and Methods}
+\label{sec:methods}
+
+\subsection{Dataset}
+
+The audit draws on AfriKnow GM-only v3, a 180-item slice of Global-MMLU \cite{singh2025global} with 90 items tagged Africa and 90 tagged Europe. Because every item is a four-option question from the same benchmark, the source, language, and distractor design stay constant across regions. Only medium-difficulty items are kept; the easy and hard ones are dropped.
+
+\textbf{Curation and content-label checks.} As the set was built, each item was checked for whether its Global-MMLU region tag matched its actual content. Twelve items (6.7\%) looked mismatched: questions tagged Africa or Europe whose content was plainly US history, split evenly six and six across the two regions. These were kept in the main analysis and a leave-them-out check was run instead to confirm the regional findings hold up to this kind of label noise. This human pass adds an independent check on the benchmark metadata without a separate annotation effort.
+
+\subsection{Models}
+
+Seven models spanning proprietary and open-weight families and released between 2024 and 2026 are evaluated: Claude-Sonnet-4.6, DeepSeek-V3.2, Gemini-2.5-Flash-Lite, Gemma-4-31B, GPT-4o-mini, GPT-4.1-Nano, and Llama-3.3-70B. All are called through the OpenRouter API.
+
+\textbf{Selection rationale.} The panel balances family diversity (proprietary and open-weight builders), size spread (large and small models), and recency (2024--2026 releases) within the OpenRouter API budget. All seven models were the ones with stable English GM-only routes at run time; the English-only scope is a coverage limitation (Section~\ref{sec:limitations}), not a claim of representativeness. The full panel is reported without selection (Analysis Plan).
+
+\subsection{Confidence signals}
+
+The audit uses two black-box signals that need no log-probability access:
+
+\begin{itemize}
+    \item \textbf{Verbalized Confidence Estimate (VCE).} The model gives a single confidence from 0 to 100 for its chosen answer, following Kadavath et al. and Tian et al. \cite{kadavath2022language,tian2023just}; dividing by 100 gives a probability. VCE is the primary signal.
+    \item \textbf{Mean Self-Consistency (MSP).} Five samples at temperature 0.8 yield the share that agree with the greedy answer (the model's top first response), a semantic self-consistency estimate \cite{wang2023selfconsistency,kuhn2023semantic}.
+\end{itemize}
+
+Fixed composites $\text{CoCoA}_\alpha = \alpha \times \text{VCE} + (1-\alpha) \times \text{MSP}$ for $\alpha \in \{0.25, 0.5, 0.75\}$ are present in the data; the equal-weight version ($\alpha = 0.5$) is CoCoA$_{0.5}$. In this evaluation the primary analysis rests on VCE, since the secondary signals were not the focus of the audit. Every number below comes from VCE.
+
+\subsection{Metrics}
+
+\textbf{Accuracy} is the share of correct greedy answers; pooled and per-model Africa-versus-Europe rates are compared with Pearson chi-squared tests.
+
+\textbf{Calibration Hit Rate (CHR)} at $\tau = 0.70$ is the fraction of wrong answers among predictions with $C \geq \tau$. A smaller CHR means better calibration: fewer confident predictions are wrong. The CHR ratio (Africa / Europe) compares the two regions; below 1 means African items are less often wrong when the model is confident.
+
+\textbf{Wrong-answer confidence (H3)} is the mean confidence on incorrect predictions. A one-sided hypothesis (Africa $>$ Europe) was pre-specified before the GM-only evaluation, but because the data were gathered before the analysis plan was final, two-sided Mann-Whitney U tests with Holm correction across the seven models are reported.
+
+\textbf{Expected Calibration Error (ECE)} uses 10 equal-width bins over $C$ \cite{guo2017calibration}. \textbf{Brier score} is the mean squared error between $C$ and a correctness indicator \cite{niculescu2005predicting}. Both are reported per model and region.
+
+\textbf{Mixed-effects models} handle the fact that observations are not independent across models and items. A fully crossed logistic GLMM with 180 item random effects is unstable in statsmodels (gradient overflow and timeouts), so for accuracy a marginal logistic regression, $\text{correct} \sim \text{region} + \text{model}$, is fit with standard errors clustered by question id. For confidence on the logit scale a logit-normal linear mixed model, $\text{logit}(C) \sim \text{region} + \text{model} + (1 \,|\, \text{qid})$, is used, with question id as a random intercept.
+
+\textbf{Analysis plan and power.} The directional H3 (higher wrong-answer confidence for Africa) was fixed before the GM-only run. Accuracy (H1) and CHR (H2) were added during first inspection as supporting signals, and the post-hoc pass adds mixed-effects models and sensitivity checks. The pooled H3 comparison rests on 170 wrong answers (79 Global-MMLU Africa-tagged, 91 Global-MMLU Europe-tagged). Under a two-sample standardized-mean framework, the current sample provides approximately 80\% power for effects around Cohen's $d = 0.43$; for $d = 0.30$ power is 0.492, for $d = 0.50$ power is 0.899, and for $d = 1.00$ power is 1.000. The minimum detectable effect at 80\% power is Cohen's $d = 0.433$ (raw-scale MDE = 0.099 on the 0--1 VCE scale). Per-model tests draw on fewer wrong answers (16--29 each), so their non-significance reflects smaller samples, not a contradiction of the pooled result. The current design is therefore sensitive to moderate and large effects, although it cannot rule out smaller regional effects.
+
+\textbf{Sensitivity and audit.} The analysis reports (i) ECE under equal-width and equal-mass binning, (ii) cluster-bootstrap 95\% CIs for pooled ECE (2,000 bootstrap resamples for paired-comparison CIs; 100 bootstrap resamples for individual metric CIs), (iii) AUROC of confidence as a correctness discriminator, (iv) a leave-out analysis of the 12 flagged content-label mismatches, and (v) item-level examples of high-confidence errors.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Run quality}
+
+The run comprised 1,260 model-item pairs, each evaluated for a greedy answer and a verbalized-confidence estimate (VCE), yielding 2,520 model-purpose calls. Every model finished all 180 items, with zero parse failures, zero API failures, and zero unparseable predictions. The total API cost was \$0.66 across 2,520 calls (4,448,016 total tokens: 4,435,416 input + 12,600 output). Detailed cost and call counts per model appear in Appendix~\ref{app:runquality}.
+
+\subsection{Accuracy (H1)}
+
+Pooled accuracy is 87.5\% for Global-MMLU Africa-tagged items (551/630) and 85.6\% for Global-MMLU Europe-tagged items (539/630), a difference that is not significant ($\chi^2 = 0.823$, df = 1, $p = .364$). The per-model comparisons are also null. Because the seven model responses for each item are not independent, we additionally assess H1 using question-level permutation and a cluster-robust logistic regression. The qid-level permutation test yields $p = .677$ (10,000 paired permutation tests), and the cluster-robust logistic regression gives $\beta_\text{Europe} = -0.17$ ($z = -0.46$, $p = .646$); both agree with the Pearson chi-square. Since accuracy does not depend on the confidence signal, this estimate is the same for VCE, so Table~\ref{tab:signals} reports only the confidence and calibration metrics; Figure~\ref{fig:accuracy} shows per-model accuracy with 95\% Wilson intervals. In this source-controlled subset there is no sign of a systematic Africa-versus-Europe accuracy gap.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{accuracy_by_region_v18.png}
+\caption{Per-model accuracy by region with 95\% Wilson confidence intervals. No model shows a significant Africa-versus-Europe difference.}
+\label{fig:accuracy}
+\end{figure}
+
+\subsection{Confidence signal comparison}
+
+Table~\ref{tab:signals} collects the pooled accuracy, wrong-answer confidence (H3), CHR at $\tau = 0.70$, ECE, and Brier on VCE. Accuracy is signal-invariant by construction. VCE reads on the most interpretable absolute scale and posts the lowest ECE of the candidates, which makes it the primary signal; the secondary signals were not the focus of this audit.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabularx}{\columnwidth}{@{}Xrrr@{}}
+\toprule
+\textbf{Metric} & \textbf{Africa} & \textbf{Europe} & \textbf{Ratio A/E} \\
+\midrule
+Accuracy & 0.875 & 0.856 & 1.022 \\
+Wrong-ans. VCE (H3) & 0.761 & 0.832 & 0.915 \\
+CHR$_{0.70}$ & 0.105 & 0.136 & 0.769 \\
+ECE & \multicolumn{2}{r}{0.048 (pooled)} & -- \\
+Brier & \multicolumn{2}{r}{0.114 (pooled)} & -- \\
+\bottomrule
+\end{tabularx}
+\caption{Pooled comparison on the primary VCE signal. Ratio A/E $<1$ favors Europe. ECE = 10-bin equal-width Expected Calibration Error; CHR$_{0.70}$ = fraction wrong among predictions with confidence $\geq 0.70$.}
+\label{tab:signals}
+\end{table}
+
+\subsection{Calibration Hit Rate (H2)}
+
+At the high-confidence threshold $\tau = 0.70$ on VCE, the pooled CHR is 10.5\% for Global-MMLU Africa-tagged items and 13.6\% for Global-MMLU Europe-tagged items (ratio 0.77): confident predictions on African items are slightly less likely to be wrong than confident predictions on European ones. No model shows a clear Africa-overconfidence pattern in CHR. Table~\ref{tab:chr} gives the per-model values, and Figure~\ref{fig:chr} in Appendix~\ref{app:figures} plots the ratio across thresholds.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}Xrrrrr@{}}
+\toprule
+\textbf{Model} & \textbf{CHR Af} & \textbf{$N$ Af} & \textbf{CHR Eu} & \textbf{$N$ Eu} & \textbf{Ratio} \\
+\midrule
+Claude & 0.025 & 79 & 0.060 & 83 & 0.420 \\
+DeepSeek & 0.068 & 88 & 0.122 & 90 & 0.558 \\
+Gemini & 0.063 & 79 & 0.096 & 83 & 0.657 \\
+Gemma & 0.125 & 88 & 0.125 & 88 & 1.000 \\
+\mbox{GPT-4o} & 0.135 & 89 & 0.161 & 87 & 0.838 \\
+\mbox{GPT-4.1n} & 0.189 & 90 & 0.244 & 90 & 0.773 \\
+Llama & 0.114 & 88 & 0.136 & 88 & 0.833 \\
+\midrule
+\textbf{Pooled} & \textbf{0.105} & \textbf{601} & \textbf{0.136} & \textbf{609} & \textbf{0.769} \\
+\bottomrule
+\end{tabularx}
+\caption{Calibration Hit Rate at $\tau = 0.70$ on VCE (fraction wrong among high-confidence predictions) and Africa/Europe ratio. Model keys: Claude-Sonnet-4.6, DeepSeek-V3.2, Gemini-2.5-Flash-Lite, Gemma-4-31B, GPT-4o (GPT-4o-mini), GPT-4.1n (GPT-4.1-Nano), Llama-3.3-70B.}
+\label{tab:chr}
+\end{table}
+
+\subsection{Wrong-answer confidence (H3)}
+
+The pre-specified hypothesis was that wrong-answer confidence would be higher for Africa than for Europe. Under the evaluated sample size, VCE shows no detectable difference. Across the 170 wrong answers (79 Global-MMLU Africa-tagged, 91 Global-MMLU Europe-tagged), mean wrong-answer VCE is 0.761 for Global-MMLU Africa-tagged items and 0.832 for Global-MMLU Europe-tagged items, giving Cohen's $d = -0.317$ (95\% parametric CI $[-0.621, -0.014]$). The conventional two-sided Mann-Whitney test is non-significant ($p = .234$), and the qid-level permutation test---preserving all seven model observations for each item together---is also non-significant ($p = .726$, 10,000 paired permutation tests). The parametric CI is a descriptive effect-size estimate assuming independent observations; under the clustered item structure it does not constitute formal inferential evidence. The pooled Mann-Whitney test serves as a conventional rank test, while the qid-level permutation provides cluster-aware robustness by preserving all seven model observations for each item together. After Holm correction across the seven models, no per-model test survives; the smallest raw $p$ is .251 (DeepSeek-V3.2), again pointing toward lower confidence on Africa. Table~\ref{tab:h3} lists the per-model results, and Figure~\ref{fig:h3} in Appendix~\ref{app:figures} shows the effect sizes.
+
+\begin{table}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}Xrrrrr@{}}
+\toprule
+\textbf{Model} & \textbf{$N$ Af} & \textbf{$N$ Eu} & \textbf{Mean Af} & \textbf{Mean Eu} & \textbf{MWU $p$} \\
+\midrule
+Claude & 9 & 8 & 0.477 & 0.644 & .265 \\
+DeepSeek & 7 & 11 & 0.693 & 0.845 & .251 \\
+Gemini & 10 & 11 & 0.700 & 0.785 & .432 \\
+Gemma & 12 & 11 & 0.908 & 0.973 & .668 \\
+\mbox{GPT-4o} & 12 & 15 & 0.825 & 0.773 & .362 \\
+\mbox{GPT-4.1n} & 17 & 22 & 0.841 & 0.861 & .530 \\
+Llama & 12 & 13 & 0.742 & 0.874 & .496 \\
+\midrule
+\textbf{Pooled} & \textbf{79} & \textbf{91} & \textbf{0.761} & \textbf{0.832} & \textbf{.234} \\
+\bottomrule
+\end{tabularx}
+\caption{Wrong-answer confidence on VCE (mean confidence among incorrect items). Cohen's $d$ for the pooled comparison is $-0.317$; no per-model Mann-Whitney $p$ survives Holm correction (smallest raw $p = .251$, DeepSeek-V3.2). Model keys as in Table~\ref{tab:chr}.}
+\label{tab:h3}
+\end{table}
+
+\subsection{Mixed-effects models}
+
+Two mixed models on VCE sharpen the picture. For accuracy, the marginal logistic regression with question-clustered SEs gives $\beta_\text{Europe} = -0.17$ ($z = -0.46$, $p = .646$), so no region difference once model effects and within-question dependence are accounted for. For confidence, the logit-normal mixed model, $\text{logit}(C_\text{VCE}) \sim \text{region} + \text{model} + (1 \,|\, \text{qid})$, gives $\beta_\text{Europe} = +0.15$ ($z = 0.81$, $p = .421$): not significant, and if anything Europe sits higher, the opposite of the original claim. The mixed model provides additional cluster-aware analysis by modeling question-id as a random intercept. Several model fixed effects are large against the Claude-Sonnet-4.6 baseline (Gemma-4-31B $\beta = +4.05$, $p < .001$; Llama-3.3-70B $\beta = +2.73$, $p < .001$), reflecting real differences in baseline VCE, and the question-id variance is $\sigma^2_\text{qid} = 1.30$ ($p < .001$). Table~\ref{tab:mixed} holds both models.
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.9cm}rrrr@{}}
+\toprule
+\textbf{Parameter} & \textbf{Coef.} & \textbf{SE} & \textbf{$z$} & \textbf{$p$} \\
+\midrule
+\multicolumn{5}{@{}p{\columnwidth}@{}}{\textit{Accuracy: marginal logistic regression, $N = 1{,}260$, SEs clustered by qid}} \\
+\midrule
+Intercept & 2.346 & 0.321 & 7.30 & $<$.001 \\
+region[Europe] & $-0.165$ & 0.360 & $-0.46$ & .646 \\
+DeepSeek & $-0.063$ & 0.211 & $-0.30$ & .764 \\
+Gemini & $-0.236$ & 0.238 & $-0.99$ & .320 \\
+Gemma & $-0.340$ & 0.228 & $-1.49$ & .135 \\
+GPT-4o & $-0.526$ & 0.224 & $-2.35$ & .019 \\
+GPT-4.1n & $-0.976$ & 0.260 & $-3.76$ & $<$.001 \\
+Llama & $-0.436$ & 0.232 & $-1.88$ & .060 \\
+\midrule
+\multicolumn{5}{@{}p{\columnwidth}@{}}{\textit{Confidence: logit-normal LMM, $N = 1{,}260$, model fixed, qid random intercept}} \\
+\midrule
+Intercept & 2.342 & 0.166 & 14.07 & $<$.001 \\
+region[Europe] & 0.152 & 0.188 & 0.81 & .421 \\
+DeepSeek & $-0.140$ & 0.153 & $-0.91$ & .361 \\
+Gemini & 0.372 & 0.153 & 2.44 & .015 \\
+Gemma & 4.049 & 0.153 & 26.53 & $<$.001 \\
+GPT-4o & $-0.484$ & 0.153 & $-3.17$ & .002 \\
+GPT-4.1n & $-0.093$ & 0.153 & $-0.61$ & .541 \\
+Llama & 2.728 & 0.153 & 17.88 & $<$.001 \\
+qid Var & 1.297 & -- & -- & $<$.001 \\
+\bottomrule
+\end{tabular}
+\caption{Mixed-effects models on the primary VCE signal. Accuracy model uses cluster-robust standard errors; confidence model uses a logit-normal linear mixed model. Model fixed effects are relative to the Claude-Sonnet-4.6 baseline. Model keys as in Table~\ref{tab:chr}.}
+\label{tab:mixed}
+\end{table}
+
+\subsection{Calibration audit: ECE and Brier}
+
+ECE and Brier on VCE move a good deal from model to model but show no uniform Africa-overconfidence shape. The best-calibrated are DeepSeek-V3.2 (ECE 5.3\%, Brier 0.081) and GPT-4o-mini (ECE 5.4\%, Brier 0.120); the worst is Gemma-4-31B (ECE 13.6\%, Brier 0.135). Where regions differ, it is model-specific: DeepSeek-V3.2 has the higher Africa ECE (8.2\% vs. 3.0\%), while GPT-4.1-Nano has the higher Europe ECE (12.3\% vs. 5.1\%). Once all predictions share one calibration curve, VCE ECE is 4.8\% (95\% cluster-bootstrap CI [3.2, 8.3] from 2,000 bootstrap resamples for paired-comparison CIs); the average of the seven per-model ECEs is higher (8.1\%) only because thin per-model samples blow up bin-level error. Figure~\ref{fig:ece} compares ECE by region and Figure~\ref{fig:reliability} shows the reliability curves; Table~\ref{tab:calibration} has the full breakdown.
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}Xrrrrr@{}}
+\toprule
+\textbf{Model} & \textbf{ECE Af} & \textbf{ECE Eu} & \textbf{ECE all} & \textbf{Brier} & \textbf{AUROC} \\
+\midrule
+Claude & 0.086 & 0.059 & 0.064 & 0.065 & 0.841 \\
+DeepSeek & 0.082 & 0.030 & 0.053 & 0.081 & 0.757 \\
+Gemini & 0.090 & 0.101 & 0.093 & 0.112 & 0.674 \\
+Gemma & 0.132 & 0.139 & 0.136 & 0.135 & 0.594 \\
+GPT-4o & 0.037 & 0.079 & 0.054 & 0.120 & 0.732 \\
+GPT-4.1n & 0.051 & 0.123 & 0.086 & 0.173 & 0.610 \\
+Llama & 0.063 & 0.102 & 0.082 & 0.113 & 0.710 \\
+\bottomrule
+\end{tabularx}
+\caption{VCE calibration by model and region: ECE (10 equal-width bins), Brier score, and AUROC. Model keys as in Table~\ref{tab:chr}.}
+\label{tab:calibration}
+\end{table*}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{ece_comparison_v18.png}
+\caption{Expected Calibration Error on VCE by model and region. Higher bars indicate poorer calibration.}
+\label{fig:ece}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{reliability_curves_v18.png}
+\caption{Reliability curves for each model on VCE. Points below the diagonal indicate overconfidence.}
+\label{fig:reliability}
+\end{figure}
+
+\subsection{Sensitivity and robustness checks}
+
+ECE is stable to the binning choice, the flagged-item leave-out does not change any conclusion, and bootstrap cluster CIs are reported in Table~\ref{tab:bootstrap}. Full sensitivity details appear in Appendix~\ref{app:sensitivity}.
+
+\subsection{Manual error analysis}
+
+High-confidence mistakes are not spread evenly across models or regions. The mixed-effects result that model effects dominate region effects is consistent with this pattern: calibration is mostly a property of the model, and where regions do diverge it is model-specific. Representative examples appear in Appendix~\ref{app:errors}.
+
+\section{Discussion}
+\label{sec:discussion}
+
+The headline finding is that the Africa-overconfidence effect disappears once the benchmark source is held fixed. In this 180-item Global-MMLU subset, Africa-tagged items are at least as accurate as Europe-tagged items, and wrong-answer confidence is not higher for Africa-tagged items on VCE. If anything, estimates lean toward Africa-tagged items: lower wrong-answer confidence, lower CHR, and a non-significant negative region coefficient in the confidence mixed model.
+
+The pooled VCE ECE of 4.8\% (95\% cluster-bootstrap CI [3.2\%, 8.3\%]) sits in the mid-range of recent black-box confidence surveys, while the per-model spread, 5.3\% (DeepSeek-V3.2) to 13.6\% (Gemma-4-31B), shows how much calibration varies by family. The pooled Brier of 0.114 and AUROC of 0.679 mean verbalized confidence separates right from wrong only moderately: higher confidence tracks higher accuracy, but the split is far from clean, as expected if calibration is mostly a model-level trait rather than a regional one.
+
+Why did the effect vanish? Two readings fit the data and are not mutually exclusive. First, the mixed-source setup tangled region together with benchmark source, so if its Africa-overconfidence headline picked up source-specific difficulty, translation, or distractor design, fixing the source should shrink or flip the effect. Second, mixed-source comparisons and this source-controlled run differ in item choice and model panel. The current design is approximately 80\% powered for effects around $d = 0.43$ and 100\% powered for $d = 1.00$, but only 49\% powered for $d = 0.30$. Thus, the disappearance of the previously reported large effect under source control is not readily explained by insufficient power, although the present study cannot exclude smaller regional effects. The disappearance is therefore consistent with source-related confounding, although differences in item selection and model panel prevent a definitive causal attribution.
+
+Testing that directly would take a fully controlled experiment with matched \texttt{full} and \texttt{gm\_only} conditions on the same models, which needs more Africa-GM item pairs than the present 90-item ceiling, or a balanced AfriMMLU-plus-Global-MMLU replication. The source-controlled audit here sets the baseline: under source control, no regional overconfidence shows up.
+
+Calibration guidance: models range widely on VCE calibration (5.3\%--13.6\%), with region-by-model asymmetries (Claude-Sonnet-4.6 and DeepSeek-V3.2 worse on Africa; GPT-4.1-Nano and Llama-3.3-70B worse on Europe). Aggregate metrics hide these; they surface only when calibration is broken out by region and model. Question-id variance is large ($\sigma^2_\text{qid} = 1.30$, $p < .001$), so future benchmarks should carry item-level random effects.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Seven models were audited for calibration on 180 Global-MMLU items split evenly between Africa and Europe, using verbalized confidence as the main signal. The Africa-overconfidence story does not hold up: no statistically significant accuracy difference, no higher wrong-answer confidence for Africa-tagged items, and the high-confidence error rate actually favors Africa-tagged items. Calibration varies by model and, within a model, by region, but patterns are model-specific rather than uniformly regional. Apparent calibration gaps can be an artifact of mixing benchmark sources; audits that control for source belong in the standard fairness toolkit.
+
+\section{Limitations}
+\label{sec:limitations}
+
+The interpretation of these results is bounded by several limitations.
+
+{\small
+\begin{enumerate}\setlength\itemsep{0pt}
+    \item \textbf{Difficulty restriction.} The GM-only v3 subset contains only medium-difficulty items. Findings may not generalize across the full difficulty spectrum; future work should replicate across the full range.
+    \item \textbf{Single source.} All items come from Global-MMLU. Results may not transfer to other African benchmarks such as AfriMMLU, which may differ in language, translation quality, or distractor design.
+    \item \textbf{Seven-model sample.} The sample is small and English-centric, spanning several families but not all major model families or closed-source commercial systems.
+    \item \textbf{Sample-size ceiling.} The maximum feasible Global-MMLU GM-only sample is 180 items (90 Africa / 90 Europe). This hard ceiling is imposed by the source-matched design: Africa-GM items are the bottleneck, and no additional pairs exist in the current Global-MMLU release. The 180-item ceiling limits power for fine-grained calibration contrasts and should be treated as a data limitation.
+    \item \textbf{Binary regional comparison.} Africa and Europe are treated as monolithic regions. Africa contains 54 countries with substantial internal diversity not captured here. Future work should disaggregate by country or language.
+    \item \textbf{Prompt robustness.} A single prompt template is used for all models and items (verbatim in Appendix~\ref{app:prompts}), with no model-specific phrasing or few-shot examples. Prompt phrasing, ordering, and formatting are known to shift LLM outputs and confidence estimates.
+    \item \textbf{Missing calibration baselines.} Post-hoc calibration methods (temperature scaling, Platt scaling, histogram binning) are standard comparators. This study reports only raw verbalized confidence and does not evaluate calibration layers.
+    \item \textbf{AUPRC not reported.} The primary metric suite includes ECE, Brier, and AUROC but not area under the precision-recall curve (AUPRC). AUPRC is increasingly reported as it is more informative under class imbalance.
+    \item \textbf{Non-equivalence.} Null regional tests should not be interpreted as establishing equivalence. With an 80\%-power minimum detectable effect of approximately $d = 0.43$, smaller regional effects remain plausible. The study has useful sensitivity to moderate and large effects but cannot rule out smaller effects or establish practical equivalence.
+\end{enumerate}
+}
+
+\section*{Ethical considerations}
+
+The aim of this work is to identify and document potential harms in AI systems. All questions are drawn from publicly available datasets or openly licensed sources. No human subjects are involved. Flagging calibration disparities is intended to support more equitable AI development, not to disparage specific models or organizations.
+
+\section*{Statement on AI Assistance}
+
+Generative AI tools were used during the preparation of this work for language editing, research planning, methodological critique, novelty review, experiment prioritization, statistical-audit reasoning, manuscript refinement, and debugging assistance. All experimental design decisions, analyses, factual claims, statistical results, and final submitted content were reviewed and verified by the authors against the underlying data and project records. The authors take full responsibility for the submitted work.
+
+\bibliography{references}
+
+\appendix
+
+\section{Extended Literature Review}
+\label{app:related}
+
+Table~\ref{tab:related} lists the 2022--2026 studies most relevant to this work across three strands, LLM calibration, geographic bias, and African or culturally aware evaluation, together with the specific gap each one motivates.
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}p{2.0cm}p{3.9cm}p{1.4cm}p{4.0cm}p{3.6cm}@{}}
+\toprule
+\textbf{Authors \& Year} & \textbf{Title} & \textbf{Venue} & \textbf{Key Claim} & \textbf{Gap Filled} \\
+\midrule
+Si et al., 2022 \cite{si2022reexamining} & Re-Examining Calibration: The Case of QA & EMNLP Findings & Aggregate ECE can be gamed; better metrics separate correct from wrong predictions & Motivates region-stratified ECE and Brier \\
+Kadavath et al., 2022 \cite{kadavath2022language} & Language Models (Mostly) Know What They Know & arXiv & Larger LMs are well-calibrated on MC/TF items when formatted properly & Foundation for self-evaluation and self-consistency signals \\
+Mielke et al., 2022 \cite{mielke2022reducing} & Reducing Conversational Agents' Overconfidence & TACL & Dialogue models can be trained to produce calibrated verbal uncertainty & Supports verbalized-confidence prompts \\
+Lin et al., 2022 \cite{lin2022teaching} & Teaching Models to Express Their Uncertainty in Words & TMLR & LLMs can emit calibrated verbal probabilities and uncertainty phrases & Basis for the 0--100 verbalized-confidence prompt \\
+Tian et al., 2023 \cite{tian2023just} & Just Ask for Calibration & EMNLP & Prompt scale and temperature affect verbalized-confidence calibration & Precedent for verbalized-confidence elicitation \\
+Kuhn et al., 2023 \cite{kuhn2023semantic} & Semantic Uncertainty & ICLR & Cluster generated answers by semantic equivalence to estimate uncertainty & Underlies semantic-equivalence reasoning in self-consistency \\
+Manakul et al., 2023 \cite{manakul2023selfcheckgpt} & SelfCheckGPT & EMNLP & Sampling-based consistency detects hallucinations without labels & Complementary black-box confidence signal \\
+Wang et al., 2023 \cite{wang2023selfconsistency} & Self-Consistency Improves Chain-of-Thought Reasoning & ICLR & Majority voting over diverse reasoning paths improves reasoning accuracy & Theoretical basis for the MSP signal \\
+Xiong et al., 2024 \cite{xiong2024can} & Can LLMs Express Their Uncertainty? & ICLR & Verbalized confidence is often overconfident; consistency improves calibration & Motivates comparison of verbalized vs. consistency confidence \\
+Geng et al., 2024 \cite{geng2024survey} & A Survey of Confidence Estimation and Calibration in LLMs & NAACL Long & Taxonomy of LLM confidence-estimation methods and metrics & Anchors ECE, Brier, and diagnostic choices \\
+Huang et al., 2024 \cite{huang2024rank} & Uncertainty in Language Models: Assessment through Rank-Calibration & EMNLP & Rank-calibration evaluates confidence without fixed thresholds & Informs reliable metric selection \\
+Zhang et al., 2024 \cite{zhang2024calibrating} & Calibrating LLM Confidence by Eliciting Fidelity & EMNLP & Decomposes confidence into question uncertainty and answer fidelity & Relevant for distractor-augmented MCQA \\
+Wang et al., 2024 \cite{wang2024self} & Self-Consistency Boosts Calibration for Math Reasoning & EMNLP Find. & Self-consistency clustering yields better calibrated confidence than baselines & Supports MSP as a confidence signal \\
+Steyvers et al., 2024 \cite{steyvers2024calibration} & The Calibration Gap Between Model and Human Confidence & arXiv & Models are miscalibrated relative to human confidence & Highlights cross-region confidence alignment needs \\
+Manvi et al., 2024 \cite{manvi2024geographically} & Large Language Models are Geographically Biased & ICML & LLMs are biased against lower-SES regions, including Africa & Demonstrates geographic bias; extends to calibration \\
+Mirza et al., 2024 \cite{mirza2024global} & Global-Liar & arXiv & GPT models favor Global-North over Global-South statements & Shows Africa/Global-South factual-accuracy disadvantage \\
+Moayeri et al., 2024 \cite{moayeri2024worldbench} & WorldBench & FAccT & Higher error rates for lower-income countries, especially Sub-Saharan Africa & External evidence of African knowledge under-representation \\
+Chhikara, 2025 \cite{chhikara2025mind} & Mind the Confidence Gap & TMLR & Distractor-augmented prompts cut ECE, but smaller models stay miscalibrated & Warns that model size and question type affect calibration \\
+Adelani et al., 2025 \cite{adelani2025irokobench} & IrokoBench & NAACL Long & Introduces AfriMMLU, AfriXNLI, AfriMGSM for 17 African languages & Context; prior comparisons used AfriMMLU and were source-confounded \\
+Singh et al., 2025 \cite{singh2025global} & Global MMLU & ACL Long & Culturally aware MMLU in 42 languages with CS/CA subsets & Source of the source-controlled Africa/Europe split \\
+Coelho et al., 2025 \cite{coelho2025inequality} & Understanding Inequality of LLM Fact-Checking over Regions & arXiv & Open and proprietary models fact-check Global-North statements more accurately & Geographic disparities persist with retrieval \\
+Decoupes et al., 2025 \cite{decoupes2025geographical} & Evaluation of Geographical Distortions in LMs & Mach. Learn. & Western overrepresentation and African/Eastern-European underrepresentation & Motivates region-stratified source-aware evaluation \\
+Xia et al., 2026 \cite{xia2026calibration} & Calibration Is Not Enough & arXiv & Stability and sensitivity metrics are needed under language variation & Argues for richer confidence diagnostics \\
+Ojo et al., 2025 \cite{ojo2025afrobench} & AfroBench & ACL Findings & Comprehensive benchmark suite for African languages across tasks & Shows African-NLP evaluation context beyond AfriMMLU \\
+Guan et al., 2025 \cite{guan2025saged} & SAGED & COLING & Self-aware generation with calibrated confidence for low-resource settings & Relevant for confidence calibration in African contexts \\
+Rystrom et al., 2025 \cite{rystrom2025multilingual} & Multilingual OMMM & OMMM Workshop & Multilingual calibration across African and European languages & Extends calibration evidence across languages \\
+Zhou et al., 2025 \cite{zhou2025beyond} & Beyond the Final Layer & arXiv & Intermediate representations carry calibration signal & Supports model-level (not only regional) calibration view \\
+\bottomrule
+\end{tabular}
+\caption{Literature review, 2022--2026. Each entry is a real, published work that addresses a calibration, geographic-bias, or African-NLP gap filled by this study.}
+\label{tab:related}
+\end{table*}
+
+\section{Prompt Templates}
+\label{app:prompts}
+
+The audit uses two prompts per item, both emitted by the OpenRouter runner (temperature 0 for closed models and temperature 0.8 for open-weight models on the answer prompt; temperature 0 for the single-pass confidence prompt). The answer prompt is sent first; the model's predicted letter is then fed into the confidence prompt. Both prompts are shown verbatim below and match the outputs reported in this paper.
+
+\textbf{Answer prompt (greedy).} The model returns only the letter of its chosen option.
+
+\begin{quote}
+\small\ttfamily
+Answer the following multiple-choice question with ONLY the letter of the correct answer (A, B, C, or D). No explanation is needed.\newline
+\newline
+<question>\newline
+A. <option A>\newline
+B. <option B>\newline
+C. <option C>\newline
+D. <option D>\newline
+\newline
+Answer:
+\end{quote}
+
+\textbf{Confidence prompt (VCE).} The model returns only an integer from 0 to 100 for its already-selected answer; dividing by 100 gives a probability.
+
+\begin{quote}
+\small\ttfamily
+You already selected an answer for the question below.\newline
+Now provide ONLY your confidence in that answer as an integer from 0 to 100.\newline
+No explanation is needed; output just the number.\newline
+\newline
+<question>\newline
+A. <option A>\newline
+B. <option B>\newline
+C. <option C>\newline
+D. <option D>\newline
+\newline
+Your selected answer: <predicted letter>\newline
+\newline
+Confidence (0-100):
+\end{quote}
+
+The same two templates are used for every model and every item; no model-specific phrasing, few-shot examples, or system prompts are added. Outputs are parsed with a regex that captures the first integer (answer) or the first 0--100 integer (confidence), so trailing text from the model is ignored.
+
+\section{Supplementary Figures}
+\label{app:figures}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{chr_by_tau_v18.png}
+\caption{Calibration Hit Rate ratios (Africa / Europe) across confidence thresholds. Values below 1 indicate fewer wrong answers among high-confidence African predictions.}
+\label{fig:chr}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{h3_effect_sizes_v18.png}
+\caption{Per-model Cohen's $d$ for wrong-answer confidence (Africa minus Europe). Negative values indicate higher confidence on European items; positive values indicate higher confidence on African items.}
+\label{fig:h3}
+\end{figure}
+
+\section{Sensitivity and Robustness Checks}
+\label{app:sensitivity}
+
+\textbf{Equal-mass binning.} ECE is stable to the binning choice: the 10-bin equal-width figure of 4.8\% is unchanged at 4.8\% with 5 equal-width bins and 4.5\% with 15 equal-mass bins, and the model ranking is stable.
+
+\textbf{Flagged-item exclusion.} Twelve items (6.7\%) were flagged as content-label mismatches, all US-history questions tagged Africa or Europe, split evenly across regions. Dropping them moves pooled accuracy from 86.5\% to 85.8\% ($\chi^2 = 1.18$, $p = .277$), and every hypothesis test stays non-significant (H3 leave-out Mann-Whitney $p = .331$).
+
+\textbf{Confidence signal.} On VCE the conclusions hold across the board: no statistically significant accuracy gap, no statistically significant Africa overconfidence, and a lower CHR for Africa.
+
+\textbf{Bootstrap uncertainty.} Table~\ref{tab:bootstrap} gives cluster-bootstrap 95\% CIs for pooled ECE (2,000 bootstrap resamples for paired-comparison CIs; 100 bootstrap resamples for individual metric CIs).
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Signal} & \textbf{Observed ECE} & \textbf{CI low} & \textbf{CI high} \\
+\midrule
+VCE & 0.048 & 0.032 & 0.083 \\
+\bottomrule
+\end{tabular}
+\caption{Cluster-bootstrap 95\% confidence intervals for pooled ECE (2,000 bootstrap resamples for paired-comparison CIs; 100 bootstrap resamples for individual metric CIs).}
+\label{tab:bootstrap}
+\end{table}
+
+\section{Reproducibility Statement}
+
+The 7-model evaluation was executed via the OpenRouter API with greedy decoding (temperature 0 for closed models; temperature 0.8 for open-weight models) for the primary answer and a single VCE pass (temperature 0) for confidence. Random seed 42 was used for item ordering. All prompts, model routes, temperature settings, seeds, cost logs, and raw responses are archived in the reproducibility package. The analysis uses 100 bootstrap resamples for individual metric confidence intervals, 2,000 bootstrap resamples for paired-comparison confidence intervals, and 10,000 paired permutation tests for clustered hypothesis testing; the analysis is deterministic given the outputs and uses a fixed NumPy random seed (20260622).
+
+\section{Analysis Plan}
+
+The directional hypothesis that wrong-answer confidence would be higher for Africa than for Europe (H3) was specified before the GM-only evaluation was executed. Accuracy (H1) and Calibration Hit Rate (H2) were added as complementary signals during initial data inspection. The post-hoc analysis adds mixed-effects models with random intercepts and sensitivity analyses for binning choice, flagged-item exclusion, and bootstrap uncertainty. All hypotheses, models, and sensitivity checks are reported without selection; no analysis was conditioned on the observed regional effect sizes. The evaluation reports the complete seven-model panel without selection.
+
+\section{Data and Code Availability}
+
+All analysis inputs, outputs, code, and figures are available in the supplementary materials of this submission. The AfriKnow GM-only v3 item metadata, raw outputs, cost logs, and analysis scripts are bundled in the same package. The source benchmark is Global-MMLU \cite{singh2025global}.
+
+\section{Run Quality Details}
+\label{app:runquality}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabularx}{\columnwidth}{@{}Xrrr@{}}
+\toprule
+\textbf{Model} & \textbf{Calls} & \textbf{Tokens} & \textbf{Cost (\$)} \\
+\midrule
+Claude-Sonnet-4.6 & 360 & 681,868 & 0.1700 \\
+DeepSeek-V3.2 & 360 & 617,656 & 0.1409 \\
+Gemini-2.5-Flash-Lite & 360 & 617,680 & 0.0616 \\
+Gemma-4-31B & 360 & 653,258 & 0.0651 \\
+GPT-4o-mini & 360 & 616,902 & 0.0923 \\
+GPT-4.1-Nano & 360 & 618,018 & 0.0616 \\
+Llama-3.3-70B & 360 & 642,634 & 0.0641 \\
+\midrule
+\textbf{Total} & \textbf{2,520} & \textbf{4,448,016} & \textbf{0.6556} \\
+\bottomrule
+\end{tabularx}
+\caption{Run quality and cost for the GM-only evaluation (180 items per model).}
+\label{tab:runquality}
+\end{table}
+
+\section{Representative High-Confidence Errors}
+\label{app:errors}
+
+Table~\ref{tab:errors} lists representative high-confidence wrong answers (VCE $\geq 0.70$) from the 7-model evaluation, drawn from the 146 genuine confident-error rows. Errors are model-specific rather than uniformly regional.
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lllllll@{}}
+\toprule
+\textbf{Model} & \textbf{Item ID} & \textbf{Region} & \textbf{Subject} & \textbf{Correct} & \textbf{Predicted} & \textbf{VCE} \\
+\midrule
+DeepSeek & GM-AF-global\_facts-21 & Africa & global\_facts & A & D & 1.00 \\
+DeepSeek & GM-AF-global\_facts-28 & Africa & global\_facts & D & B & 1.00 \\
+DeepSeek & GM-AF-global\_facts-58 & Africa & global\_facts & C & D & 1.00 \\
+GPT-4.1n & GM-AF-hs\_world\_history-142 & Africa & world\_history & B & C & 1.00 \\
+GPT-4.1n & GM-AF-hs\_world\_history-221 & Africa & world\_history & C & D & 1.00 \\
+GPT-4.1n & GM-AF-hs\_world\_history-38 & Africa & world\_history & D & A & 1.00 \\
+GPT-4.1n & GM-AF-moral\_scenarios-825 & Africa & moral\_scenarios & D & C & 1.00 \\
+GPT-4.1n & GM-AF-prehistory-219 & Africa & prehistory & A & D & 1.00 \\
+GPT-4.1n & GM-AF-prehistory-238 & Africa & prehistory & A & B & 1.00 \\
+GPT-4.1n & GM-AF-prehistory-79 & Africa & prehistory & C & A & 1.00 \\
+\bottomrule
+\end{tabular}
+\caption{Representative high-confidence wrong answers (VCE $\geq 0.70$) from the 7-model evaluation, drawn from the 146 genuine confident-error rows. Errors are model-specific rather than uniformly regional.}
+\label{tab:errors}
+\end{table*}
+
+\end{document}
