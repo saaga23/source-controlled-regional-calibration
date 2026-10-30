@@ -1,0 +1,20 @@
+# Secrets and environment
+.env
+*.key
+credentials*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Generated during verification runs (frozen copies live in results/reports)
+evidence/

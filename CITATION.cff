@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this dataset, code, or audit methodology, please cite it."
+title: "Source-Controlled Benchmark Construction as a Validity Requirement for Regional Calibration Audits (AfriKnow GM-only v3 audit)"
+authors:
+  - family-names: Abraham
+    given-names: Sunday Aspita
+keywords:
+  - calibration
+  - llm-evaluation
+  - regional-fairness
+  - benchmark-construction
+  - global-mmlu
+  - africa
+  - verbalized-confidence
+license: MIT
+repository-code: "https://github.com/saaga23/source-controlled-regional-calibration"
+preferred-citation:
+  type: unpublished
+  title: "Source-Controlled Benchmark Construction as a Validity Requirement for Regional Calibration Audits"
+  authors:
+    - family-names: Abraham
+      given-names: Sunday Aspita
+  year: 2026
+  note: "Provisional; author metadata to be finalized at camera-ready. Cite the source benchmark as Global-MMLU (Singh et al., 2025, arXiv:2412.03304, Apache-2.0)."
