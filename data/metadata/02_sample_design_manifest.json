@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-07-06T15:21:53.084064+00:00",
+  "script": "C:\\Users\\USER\\Downloads\\Revamp\\annotator_pipeline\\02_sample_design.py",
+  "seed": 42,
+  "n_per_region": 60,
+  "total_items": 120,
+  "source_file": "C:\\Users\\USER\\Downloads\\Revamp\\phase2_data\\afriknow_gm_only_v3.json",
+  "source_hash": "2193db46e849",
+  "flagged_excluded": 21,
+  "flagged_file": "C:\\Users\\USER\\Downloads\\Revamp\\v18_outputs\\v18_flagged_items.csv",
+  "output_file": "C:\\Users\\USER\\Downloads\\Revamp\\annotator_pipeline\\outputs\\02_sampled_items.json",
+  "output_hash": "6ca72c68d71f",
+  "category_distribution": {
+    "high_school_world_history": 55,
+    "miscellaneous": 4,
+    "global_facts": 10,
+    "prehistory": 22,
+    "high_school_geography": 6,
+    "high_school_biology": 6,
+    "formal_logic": 2,
+    "nutrition": 4,
+    "moral_scenarios": 2,
+    "virology": 2,
+    "world_religions": 2,
+    "moral_disputes": 2,
+    "professional_accounting": 2,
+    "professional_law": 1
+  },
+  "region_counts": {
+    "Africa": 60,
+    "Europe": 60
+  }
+}

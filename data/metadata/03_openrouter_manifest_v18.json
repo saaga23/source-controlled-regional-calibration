@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-07-13T08:31:19.947324+00:00",
+  "script": "scripts/transform_v16_to_current_schema.py + standardization_patch.py",
+  "source": "data/raw/03_openrouter_outputs_v18_correct.csv",
+  "n_items": 180,
+  "n_models": 7,
+  "models": [
+    "claude-sonnet-4.6",
+    "deepseek-v3.2",
+    "gemini-2.5-flash-lite",
+    "gemma-4-31b",
+    "gpt-4o-mini",
+    "gpt41-nano",
+    "llama-3.3-70b"
+  ],
+  "n_rows": 2520,
+  "purpose_rows": {
+    "greedy": 1260,
+    "vce": 1260
+  },
+  "cocoa_fixed_formula": "0.5 * vce + 0.5",
+  "note": "Standardized from v16 archive. Original v18 used 0.5*vce + 0.5*sc_agree; corrected to match current pipeline (no self-consistency)."
+}

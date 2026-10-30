@@ -1,0 +1,162 @@
+experiment_id: AFRIKNOW_V18
+experiment_name: Source-Aware Calibration Audit v18
+version: v18
+status: frozen
+date: 2026-08-20
+submission_target: COLING_2027_ARR_October_2026
+deadline: 2026-10-12
+
+dataset:
+  id: AFRIKNOW_GM_ONLY_V3
+  canonical_raw_csv: data/raw/03_openrouter_outputs_v18_correct.csv
+  curated_180_items: data/curated/02_gm_only_180_items.json
+  n_items: 180
+  n_qids: 180
+  split:
+    africa: 90
+    europe: 90
+  source: Global-MMLU
+  difficulty: medium
+  cultural_sensitivity_checked: true
+  content_label_mismatches: 12
+  row_count: 2520
+  row_formula: 180_items * 7_models * 2_purposes
+  cost_usd: 0.66
+  generation_route: OpenRouter
+  temperatures:
+    closed_models: 0.0
+    open_models: 0.8
+  purpose_columns:
+    - greedy
+    - vce
+  vce_formula: verbalized_0_100_confidence
+  sha256: 1915a77c02ff1f08a87f8b2950f2e2c5e3041a353f7e26f456dd700543a6807d
+
+models:
+  panel_size: 7
+  roster:
+    - id: claude-sonnet-4.6
+      provider: anthropic
+      class: closed
+      temperature: 0.0
+      max_tokens: 256
+    - id: deepseek-v3.2
+      provider: deepseek
+      class: open
+      temperature: 0.8
+      max_tokens: 256
+    - id: gemini-2.5-flash-lite
+      provider: google
+      class: closed
+      temperature: 0.8
+      max_tokens: 256
+    - id: gemma-4-31b
+      provider: google
+      class: open
+      temperature: 0.8
+      max_tokens: 256
+    - id: gpt-4o-mini
+      provider: openai
+      class: closed
+      temperature: 0.0
+      max_tokens: 256
+    - id: gpt41-nano
+      provider: openai
+      class: closed
+      temperature: 0.0
+      max_tokens: 256
+    - id: llama-3.3-70b
+      provider: meta
+      class: open
+      temperature: 0.8
+      max_tokens: 256
+
+manifests:
+  pipeline_manifest: data/metadata/03_openrouter_manifest_v18.json
+  experiment_manifest: experiments/manifests/AFRIKNOW_V18_MANIFEST.yaml
+
+canonical_artifacts:
+  arr_pdf:
+    path: paper/ARR/main_FINAL.pdf
+    sha256: 471d979aeb1949c3fe99fd70b1e3f131f0c46afc6b07c841ea37304dacad2734
+  arr_source:
+    path: paper/ARR/main.tex
+    sha256: 543738c1f38b7a613bda0452fae15d69bd95f177412d469ccda879a58d094fd8
+  judge_pdf:
+    path: paper/JUDGe/main_JUDGe_FINAL.pdf
+    sha256: C922260EAB38E8491CF19434BE53F10CFB0C39524B9C629D0D6A10A1D54469C9
+  judge_source:
+    path: paper/JUDGe/main_JUDGe_FINAL.tex
+    sha256: 22c8f9e5c6a7b8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3
+
+validation:
+  consistency_checks: 71
+  consistency_checks_passed: 71
+  consistency_check_file: evidence/consistency_check.json
+
+statistics:
+  h1_accuracy:
+    africa: 0.875
+    europe: 0.856
+    chi2: 0.823
+    p_chi2: 0.364
+    p_perm_qid: 0.677
+    n_perm: 10000
+  h2_chr:
+    africa: 0.105
+    europe: 0.136
+    ratio: 0.77
+  h3_wrong_vce:
+    africa_mean: 0.761
+    europe_mean: 0.832
+    cohens_d: -0.317
+    ci_95: [-0.621, -0.014]
+    p_mwu: 0.234
+    p_perm_qid: 0.726
+    n_africa_wrong: 79
+    n_europe_wrong: 91
+  pooled_calibration:
+    ece: 0.048
+    ece_ci_95: [0.032, 0.083]
+    brier: 0.114
+    auroc: 0.679
+  lmm_accuracy:
+    beta_europe: -0.165
+    p: 0.646
+    intercept: 2.346
+  lmm_confidence:
+    beta_europe: 0.152
+    p: 0.421
+    intercept: 2.342
+    qid_variance: 1.297
+
+mixed_source_experiment:
+  archived_path: archive/experiments/mixed_source_2026-07-18/
+  date: 2026-07-18
+  n_items: 180
+  n_models: 5
+  cost_usd: 0.072
+  africa_accuracy: 0.916
+  europe_accuracy: 0.902
+  vce_diff: -0.063
+
+power_analysis:
+  mde_80pct: 0.433
+  cohens_d_30_power: 0.492
+  cohens_d_50_power: 0.899
+  cohens_d_100_power: 0.99
+
+robustness:
+  leave_one_model_out: evidence/final/leave_one_model_out_final.csv
+  permutation_audit: evidence/final/permutation_audit_final.json
+  null_equivalence: evidence/final/null_equivalence_final.json
+  source_control_sensitivity: reports/final/SOURCE_CONTROL_SENSITIVITY_FINAL.md
+
+archive:
+  superseded_2026_07_18: archive/experiments/mixed_source_2026-07-18/
+  quarantine: archive/quarantine/
+  old_reports: archive/reports/
+  old_manuscripts: archive/manuscripts/
+  build_artifacts: archive/build/
+  old_packages: archive/old_packages/
+  misc: archive/misc/
