@@ -1,0 +1,55 @@
+[{"stream_name":"stderr","time":7.107428717,"data":"/usr/local/lib/python3.12/dist-packages/nbformat/__init__.py:96: MissingIDFieldWarning: Cell is missing an id field, this will become a hard error in future nbformat versions. You may want to use `normalize()` on your notebooks before validations (available since nbformat 5.1.4). Previous versions of nbformat are fixing this issue transparently, and will stop doing so in the future.\n"}
+,{"stream_name":"stderr","time":7.107498997,"data":"  validate(nb)\n"}
+,{"stream_name":"stderr","time":8.184681985,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":8.184716142,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":8.184722945,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":8.184727997,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stderr","time":8.983131588,"data":"0.00s - Debugger warning: It seems that frozen modules are being used, which may\n"}
+,{"stream_name":"stderr","time":8.983169824,"data":"0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off\n"}
+,{"stream_name":"stderr","time":8.983175897,"data":"0.00s - to python to disable frozen modules.\n"}
+,{"stream_name":"stderr","time":8.983181093,"data":"0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.\n"}
+,{"stream_name":"stdout","time":15.188149028,"data":"ROOT: /kaggle/input/datasets/abrahamsunday123/afriknow-v18-inputs\n"}
+,{"stream_name":"stdout","time":15.188209252,"data":"rows 2520 cols 23\n"}
+,{"stream_name":"stdout","time":15.188215318,"data":"greedy 1260 vce 1260\n"}
+,{"stream_name":"stdout","time":15.264240046,"data":"TABLE 2  ECE(Af/Eu/all) Brier AUROC   MATCH?\n"}
+,{"stream_name":"stdout","time":15.264276569,"data":"Claude    0.086 0.059 0.064 0.065 0.841  paper=(0.086, 0.059, 0.064, 0.065, 0.841)  MATCH\n"}
+,{"stream_name":"stdout","time":15.264282716,"data":"DeepSeek  0.082 0.030 0.053 0.081 0.757  paper=(0.082, 0.03, 0.053, 0.081, 0.757)  MATCH\n"}
+,{"stream_name":"stdout","time":15.264287734,"data":"Gemini    0.090 0.101 0.093 0.112 0.674  paper=(0.09, 0.101, 0.093, 0.112, 0.674)  MATCH\n"}
+,{"stream_name":"stdout","time":15.264292756,"data":"Gemma     0.132 0.139 0.136 0.135 0.594  paper=(0.132, 0.139, 0.136, 0.135, 0.594)  MATCH\n"}
+,{"stream_name":"stdout","time":15.264297766,"data":"GPT-4o    0.037 0.079 0.054 0.120 0.732  paper=(0.037, 0.079, 0.054, 0.12, 0.732)  MATCH\n"}
+,{"stream_name":"stdout","time":15.264302502,"data":"GPT-4.1n  0.051 0.123 0.086 0.173 0.610  paper=(0.051, 0.123, 0.086, 0.173, 0.61)  MATCH\n"}
+,{"stream_name":"stdout","time":15.264307281,"data":"Llama     0.063 0.102 0.082 0.113 0.710  paper=(0.063, 0.102, 0.082, 0.113, 0.71)  MATCH\n"}
+,{"stream_name":"stdout","time":15.264312136,"data":"\n"}
+,{"stream_name":"stdout","time":15.264316801,"data":"POOLED ECE=0.0480 (paper 0.048)  Brier=0.1141 (paper 0.114)  AUROC=0.6787 (paper 0.679)\n"}
+,{"stream_name":"stdout","time":15.264320837,"data":"avg per-model ECE=0.0812 (paper 0.081)\n"}
+,{"stream_name":"stdout","time":15.321390317,"data":"ACCURACY LMM (cluster SE by qid)  coef   MATCH?\n"}
+,{"stream_name":"stdout","time":15.321431035,"data":"  Intercept                        paper=+2.346 got=+2.346 MATCH\n"}
+,{"stream_name":"stdout","time":15.321437452,"data":"  region[T.Europe]                 paper=-0.165 got=-0.165 MATCH\n"}
+,{"stream_name":"stdout","time":15.321442678,"data":"  model[T.deepseek-v3.2]           paper=-0.063 got=-0.063 MATCH\n"}
+,{"stream_name":"stdout","time":15.32146667,"data":"  model[T.gemini-2.5-flash-lite]   paper=-0.236 got=-0.236 MATCH\n"}
+,{"stream_name":"stdout","time":15.321472108,"data":"  model[T.gemma-4-31b]             paper=-0.340 got=-0.340 MATCH\n"}
+,{"stream_name":"stdout","time":15.321476207,"data":"  model[T.gpt-4o-mini]             paper=-0.526 got=-0.526 MATCH\n"}
+,{"stream_name":"stdout","time":15.321480503,"data":"  model[T.gpt41-nano]              paper=-0.976 got=-0.976 MATCH\n"}
+,{"stream_name":"stdout","time":15.321485065,"data":"  model[T.llama-3.3-70b]           paper=-0.436 got=-0.436 MATCH\n"}
+,{"stream_name":"stdout","time":15.843181192,"data":"CONFIDENCE LMM  logit(clip 0.001) ~ region+model+(1|qid), REML   coef   MATCH?\n"}
+,{"stream_name":"stdout","time":15.843214954,"data":"  Intercept                        paper=+2.342 got=+2.342 MATCH\n"}
+,{"stream_name":"stdout","time":15.843220341,"data":"  region[T.Europe]                 paper=+0.152 got=+0.152 MATCH\n"}
+,{"stream_name":"stdout","time":15.843225546,"data":"  model[T.deepseek-v3.2]           paper=-0.140 got=-0.140 MATCH\n"}
+,{"stream_name":"stdout","time":15.843230272,"data":"  model[T.gemini-2.5-flash-lite]   paper=+0.372 got=+0.372 MATCH\n"}
+,{"stream_name":"stdout","time":15.843234931,"data":"  model[T.gemma-4-31b]             paper=+4.049 got=+4.049 MATCH\n"}
+,{"stream_name":"stdout","time":15.843239559,"data":"  model[T.gpt-4o-mini]             paper=-0.484 got=-0.484 MATCH\n"}
+,{"stream_name":"stdout","time":15.843244175,"data":"  model[T.gpt41-nano]              paper=-0.093 got=-0.093 MATCH\n"}
+,{"stream_name":"stdout","time":15.843248818,"data":"  model[T.llama-3.3-70b]           paper=+2.728 got=+2.728 MATCH\n"}
+,{"stream_name":"stdout","time":15.843253485,"data":"  qid Var                          paper=+1.297 got=+1.297 MATCH\n"}
+,{"stream_name":"stdout","time":15.843258182,"data":"converged: True\n"}
+,{"stream_name":"stdout","time":15.843262779,"data":"\n"}
+,{"stream_name":"stdout","time":15.843267265,"data":"Evidence CSVs written to /kaggle/working/: table2_ece_verified.csv, lmm_verified.json\n"}
+,{"stream_name":"stderr","time":19.36813306,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":19.368173659,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":19.564109682,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":19.564138902,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":20.311182697,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to notebook\n"}
+,{"stream_name":"stderr","time":20.71561706,"data":"[NbConvertApp] Writing 14678 bytes to __notebook__.ipynb\n"}
+,{"stream_name":"stderr","time":23.935213289,"data":"[NbConvertApp] Converting notebook __notebook__.ipynb to html\n"}
+,{"stream_name":"stderr","time":25.050755927,"data":"[NbConvertApp] Writing 315361 bytes to __results__.html\n"}
+]
