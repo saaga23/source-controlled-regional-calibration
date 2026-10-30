@@ -69,6 +69,13 @@ This inventory maps every important artifact in this repository to its origin, p
 | Kaggle upload/notebook utilities | **Intentionally excluded** | Account-specific tooling (uploads to a personal Kaggle account); not needed for reproduction. Public Kaggle dataset/notebook links are documented in the README. |
 | JUDGe workshop manuscript | **Intentionally excluded** | Separate paper/workshop artifact, not part of this repository's scope. |
 
+## Archived contrast data (Claim 6 provenance)
+
+| Artifact | Path | Status | Notes |
+|---|---|---|---|
+| Mixed-source outputs (superseded experiment) | `archive/experiments/mixed_source_2026-07-18/outputs/03_openrouter_outputs_mixed_180.csv` | **Verified original** | 1,640 rows; 5 models (claude-3-haiku, deepseek-v3.2, gpt-4o-mini, llama-3.3-70b, qwen3-235b); the source-*confounded* contrast dataset referenced by the validation script and manuscript Claim 6. Only this one archived output file is published — the archive's other contents (older drafts, upload tooling, a `.env` present upstream) are intentionally excluded. |
+| Archive manifest | `archive/experiments/mixed_source_2026-07-18/ARCHIVE_MANIFEST.md` | **Verified original** | Documents the superseded experiment's design and quarantine reasons. |
+
 ## Requires further verification
 
 | Artifact | Status | Notes |
